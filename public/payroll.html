@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Payroll – Payroll System</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+body{
+  margin:0;
+  font-family:Poppins,Arial;
+  background:#eef3f9;
+}
+header{
+  background:#1e3a8a;
+  padding:18px;
+  text-align:center;
+  color:white;
+  font-size:22px;
+  font-weight:600;
+}
+.container{
+  max-width:900px;
+  margin:25px auto;
+  background:#fff;
+  padding:20px;
+  border-radius:12px;
+  box-shadow:0 6px 25px rgba(0,0,0,0.08);
+}
+
+button{
+  padding:12px;
+  background:#1e40af;
+  color:white;
+  border:0;
+  border-radius:8px;
+  font-size:16px;
+  cursor:pointer;
+  width:100%;
+  margin-bottom:20px;
+}
+
+table{
+  width:100%;
+  border-collapse:collapse;
+  margin-top:15px;
+}
+th,td{
+  padding:10px;
+  border-bottom:1px solid #dfe4ee;
+}
+th{
+  background:#f3f5fa;
+  font-size:15px;
+  text-align:left;
+}
+td{
+  font-size:14px;
+}
+h3{
+  margin:0;
+  margin-bottom:12px;
+}
+</style>
+
+</head>
+<body>
+
+<header>Payroll Management</header>
+
+<div class="container">
+
+  <button onclick="generatePayroll()">Generate Monthly Payroll</button>
+
+  <h3>Payroll History</h3>
+
+  <table id="payrollTable">
+    <tr>
+      <th>Month</th>
+      <th>Name</th>
+      <th>Basic</th>
+      <th>HRA</th>
+      <th>DA</th>
+      <th>PF</th>
+      <th>TDS</th>
+      <th>Net</th>
+    </tr>
+  </table>
+
+</div>
+
+
+<script>
+
+// ======================== GENERATE PAYROLL ========================
+async function generatePayroll(){
+  const res = await fetch("/api/payroll", {
+    method:"POST",
+    headers:{
+      "Authorization":"Bearer " + localStorage.getItem("token")
+    }
+  });
+
+  const j = await res.json();
+  alert(j.message);
+  loadPayroll();
+}
+
+// ======================== LOAD PAYROLL HISTORY ========================
+async function loadPayroll(){
+  const res = await fetch("/api/payroll", {
+    headers:{
+      "Authorization":"Bearer " + localStorage.getItem("token")
+    }
+  });
+
+  const j = await res.json();
+
+  let html = `
+    <tr>
+      <th>Month</th>
+      <th>Name</th>
+      <th>Basic</th>
+      <th>HRA</th>
+      <th>DA</th>
+      <th>PF</th>
+      <th>TDS</th>
+      <th>Net</th>
+    </tr>
+  `;
+
+  (j.payrolls || []).forEach(p => {
+    html += `
+      <tr>
+        <td>${p.month}</td>
+        <td>${p.name}</td>
+        <td>${p.basic}</td>
+        <td>${p.hra}</td>
+        <td>${p.da}</td>
+        <td>${p.pf}</td>
+        <td>${p.tds}</td>
+        <td>${p.net_salary}</td>
+      </tr>
+    `;
+  });
+
+  payrollTable.innerHTML = html;
+}
+
+loadPayroll();
+
+</script>
+
+</body>
+</html>

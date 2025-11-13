@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Reports - Payroll</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+  body{margin:0;font-family:Poppins,Arial;background:#f7fafc}
+  header{background:linear-gradient(90deg,#2563eb,#3b82f6);color:#fff;padding:14px;text-align:center}
+  .wrap{max-width:1000px;margin:18px auto;padding:12px}
+  .card{background:#fff;padding:18px;border-radius:12px;box-shadow:0 6px 18px rgba(0,0,0,0.06);margin-bottom:14px}
+  table{width:100%;border-collapse:collapse;margin-top:10px}
+  th,td{padding:10px;border-bottom:1px solid #eef2f6}
+  button{background:#2563eb;color:#fff;padding:10px;border:0;border-radius:8px;cursor:pointer}
+</style>
+</head>
+<body>
+<header><div style="font-weight:700">Reports</div></header>
+
+<div class="wrap">
+  <div class="card">
+    <h3>Salary Report</h3>
+    <p style="color:#666">You can view payroll breakdown here.</p>
+    <table id="rtable"><tr><th>Name</th><th>Month</th><th>Basic</th><th>HRA</th><th>DA</th><th>PF</th><th>TDS</th><th>Net</th></tr></table>
+  </div>
+</div>
+
+<script>
+async function loadReports(){
+  const res = await fetch('/api/payroll', { headers:{ 'Authorization':'Bearer '+localStorage.getItem('token') }});
+  const j = await res.json();
+  let html = '<tr><th>Name</th><th>Month</th><th>Basic</th><th>HRA</th><th>DA</th><th>PF</th><th>TDS</th><th>Net</th></tr>';
+  (j.payrolls||[]).forEach(p => {
+    html += `<tr><td>${p.name}</td><td>${p.month}</td><td>${p.basic}</td><td>${p.hra}</td><td>${p.da}</td><td>${p.pf}</td><td>${p.tds}</td><td>${p.net_salary}</td></tr>`;
+  });
+  rtable.innerHTML = html;
+}
+loadReports();
+</script>
+</body>
+</html>

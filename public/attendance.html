@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Attendance – Payroll System</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+body{
+  margin:0;
+  font-family:Poppins,Arial;
+  background:#eef3f9;
+}
+header{
+  background:#2563eb;
+  color:#fff;
+  padding:16px;
+  font-size:22px;
+  text-align:center;
+}
+.container{
+  max-width:900px;
+  margin:25px auto;
+  background:#fff;
+  padding:20px;
+  border-radius:12px;
+  box-shadow:0 6px 30px rgba(0,0,0,0.08);
+}
+label{
+  font-size:15px;
+  font-weight:600;
+  margin-top:10px;
+  display:block;
+}
+select,input{
+  width:100%;
+  padding:11px;
+  font-size:15px;
+  border:1px solid #dce1eb;
+  border-radius:8px;
+  margin-top:6px;
+}
+button{
+  margin-top:14px;
+  padding:12px;
+  width:100%;
+  background:#2563eb;
+  color:white;
+  border:0;
+  border-radius:8px;
+  font-size:16px;
+  font-weight:600;
+  cursor:pointer;
+}
+table{
+  width:100%;
+  border-collapse:collapse;
+  margin-top:25px;
+}
+th,td{
+  padding:10px;
+  border-bottom:1px solid #dfe4ee;
+  font-size:15px;
+}
+th{
+  background:#f3f5fa;
+}
+</style>
+</head>
+
+<body>
+
+<header>Attendance Management</header>
+
+<div class="container">
+
+  <label>Employee</label>
+  <select id="employeeSelect"></select>
+
+  <label>Date</label>
+  <input type="date" id="attDate">
+
+  <label>Status</label>
+  <select id="attStatus">
+    <option value="">Choose</option>
+    <option value="Present">Present</option>
+    <option value="Absent">Absent</option>
+    <option value="Leave">Leave</option>
+  </select>
+
+  <button onclick="markAttendance()">Save Attendance</button>
+
+  <table id="attendanceTable"></table>
+
+</div>
+
+
+<script>
+
+// ================= LOAD EMPLOYEES =================
+async function loadEmployees(){
+  const res = await fetch("/api/employees", {
+    headers:{ "Authorization":"Bearer " + localStorage.getItem("token") }
+  });
+
+  const j = await res.json();
+
+  let options = "<option value=''>Select Employee</option>";
+
+  (j.employees || []).forEach(emp => {
+    options += `<option value="${emp.id}">${emp.name}</option>`;
+  });
+
+  employeeSelect.innerHTML = options;
+}
+
+
+// ================= MARK ATTENDANCE =================
+async function markAttendance(){
+  const employee_id = employeeSelect.value;
+  const date = attDate.value;
+  const status = attStatus.value;
+
+  if(!employee_id || !date || !status){
+    alert("Please fill all fields");
+    return;
+  }
+
+  const res = await fetch("/api/attendance", {
+    method:"POST",
+    headers:{
+      "Content-Type":"application/json",
+      "Authorization":"Bearer " + localStorage.getItem("token")
+    },
+    body: JSON.stringify({ employee_id, date, status })
+  });
+
+  const out = await res.json();
+  alert(out.message);
+  loadAttendance();
+}
+
+
+// ================= LOAD ATTENDANCE TABLE =================
+async function loadAttendance(){
+  const res = await fetch("/api/attendance", {
+    headers:{ "Authorization":"Bearer " + localStorage.getItem("token") }
+  });
+
+  const j = await res.json();
+
+  let html = `
+    <tr>
+      <th>Name</th>
+      <th>Date</th>
+      <th>Status</th>
+    </tr>
+  `;
+
+  (j.records || []).forEach(r => {
+    html += `
+      <tr>
+        <td>${r.name}</td>
+        <td>${r.date}</td>
+        <td>${r.status}</td>
+      </tr>
+    `;
+  });
+
+  attendanceTable.innerHTML = html;
+}
+
+
+// INITIAL LOAD
+loadEmployees();
+loadAttendance();
+
+</script>
+
+</body>
+</html>

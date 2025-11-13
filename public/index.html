@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Payroll • Dashboard</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+  :root{--bg:#f4f7fb;--card:#fff;--accent:#2563eb;--muted:#6b7280}
+  *{box-sizing:border-box} body{margin:0;font-family:Poppins,Arial;background:var(--bg)}
+  header{background:linear-gradient(90deg,#2563eb,#3b82f6);color:#fff;padding:18px 24px;display:flex;align-items:center;justify-content:space-between}
+  header h1{margin:0;font-size:20px}
+  .wrap{max-width:1100px;margin:24px auto;padding:12px}
+  .grid{display:grid;grid-template-columns:260px 1fr;gap:18px}
+  nav .card{padding:12px}
+  .menu a{display:block;padding:10px;border-radius:8px;color:#0b1220;text-decoration:none;margin-bottom:8px}
+  .menu a:hover{background:#eef6ff}
+  .card{background:var(--card);border-radius:12px;box-shadow:0 8px 20px rgba(12,15,20,0.06);padding:18px}
+  .stats{display:flex;gap:12px}
+  .stat{flex:1;padding:16px;border-radius:10px;background:linear-gradient(180deg,#f8fbff,#eef6ff);text-align:center}
+  .btn{background:var(--accent);color:#fff;padding:10px 12px;border-radius:8px;border:0;cursor:pointer}
+  footer{color:var(--muted);text-align:center;padding:14px}
+</style>
+</head>
+<body>
+<header>
+  <h1>Payroll Management</h1>
+  <div>
+    <span id="who" style="margin-right:12px;color:#eaf2ff">Not logged in</span>
+    <button id="logout" class="btn" style="display:none">Logout</button>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="grid">
+    <nav>
+      <div class="card">
+        <div style="font-weight:700;margin-bottom:8px">Navigation</div>
+        <div class="menu">
+          <a href="index.html">Dashboard</a>
+          <a href="auth.html">Login / Register</a>
+          <a href="employees.html">Employees</a>
+          <a href="attendance.html">Attendance</a>
+          <a href="payroll.html">Payroll</a>
+          <a href="reports.html">Reports</a>
+        </div>
+      </div>
+    </nav>
+
+    <main>
+      <div class="card">
+        <h2>Dashboard</h2>
+        <p class="muted">Quick overview</p>
+        <div class="stats" style="margin-top:12px">
+          <div class="stat">Employees<br><div id="empCount" style="font-size:24px;font-weight:700;margin-top:8px">0</div></div>
+          <div class="stat">Payrolls<br><div id="payCount" style="font-size:24px;font-weight:700;margin-top:8px">0</div></div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:14px">
+        <h3>Recent Actions</h3>
+        <ul id="recent" style="margin-top:10px;color:var(--muted)"></ul>
+      </div>
+    </main>
+  </div>
+  <footer>Made for DBMS project • All inline CSS & JS</footer>
+</div>
+
+<script>
+// if no token in localStorage, redirect user to auth page
+if (!localStorage.getItem('token')) {
+  // allow a small delay so server-side root redirect doesn't conflict
+  window.location.href = '/auth.html';
+}
+</script>
+
+<script>
+async function loadStats(){
+  const token = localStorage.getItem('token');
+  if(token){ document.getElementById('who').innerText = 'Logged in'; document.getElementById('logout').style.display='inline-block'; }
+  try{
+    const r = await fetch('/api/stats', { headers: { 'Authorization': 'Bearer ' + token }});
+    const j = await r.json();
+    document.getElementById('empCount').innerText = j.employees || 0;
+    document.getElementById('payCount').innerText = j.payrolls || 0;
+  }catch(e){ console.error(e); }
+}
+document.getElementById('logout').addEventListener('click', ()=>{ localStorage.removeItem('token'); location.reload(); });
+loadStats();
+</script>
+</body>
+</html>

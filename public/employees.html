@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Employees - Payroll</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+  body{margin:0;font-family:Poppins,Arial;background:#f6f8fb}
+  header{background:linear-gradient(90deg,#2563eb,#3b82f6);color:#fff;padding:14px;text-align:center}
+  .wrap{max-width:1000px;margin:18px auto;padding:12px}
+  .card{background:#fff;padding:18px;border-radius:12px;box-shadow:0 6px 18px rgba(0,0,0,0.06);margin-bottom:14px}
+  input{padding:10px;border-radius:8px;border:1px solid #e6eefb;width:100%;margin-top:8px}
+  .row{display:flex;gap:10px}
+  .col{flex:1}
+  button{background:#2563eb;color:#fff;padding:10px;border-radius:8px;border:0;cursor:pointer;margin-top:10px}
+  table{width:100%;border-collapse:collapse;margin-top:12px}
+  th,td{padding:10px;border-bottom:1px solid #eef2f6;text-align:left}
+</style>
+</head>
+<body>
+<header><div style="font-weight:700">Employees</div></header>
+
+<div class="wrap">
+  <div class="card">
+    <h3>Add Employee</h3>
+    <div class="row">
+      <div class="col"><input id="ename" placeholder="Name"></div>
+      <div class="col"><input id="eemail" placeholder="Email"></div>
+    </div>
+    <div class="row" style="margin-top:8px">
+      <div class="col"><input id="edept" placeholder="Department"></div>
+      <div class="col"><input id="esalary" placeholder="Basic Salary" type="number"></div>
+    </div>
+    <button onclick="addEmployee()">Save Employee</button>
+  </div>
+
+  <div class="card">
+    <h3>All Employees</h3>
+    <table id="etable"><tr><th>Name</th><th>Email</th><th>Department</th><th>Basic</th><th>Action</th></tr></table>
+  </div>
+</div>
+
+<script>
+
+let updateId = null;   // Edit mode off initially
+
+// =====================================
+// ADD or UPDATE EMPLOYEE
+// =====================================
+async function addEmployee(){
+
+    const body = {
+        name: ename.value.trim(),
+        email: eemail.value.trim(),
+        department: edept.value.trim(),
+        basic_salary: esalary.value.trim()
+    };
+
+    if(!body.name || !body.email || !body.department || !body.basic_salary){
+        alert("Please fill all fields.");
+        return;
+    }
+
+    // ============== UPDATE MODE ==============
+    if(updateId){
+        const res = await fetch(`/api/employees/${updateId}`, {
+            method: "PUT",
+            headers:{
+                "Content-Type":"application/json",
+                "Authorization":"Bearer " + localStorage.getItem("token")
+            },
+            body: JSON.stringify(body)
+        });
+
+        const out = await res.json();
+        alert(out.message || "Updated");
+
+        updateId = null;
+        clearForm();
+        loadEmployees();
+        return;
+    }
+
+    // ============== ADD MODE ==============
+    const res = await fetch("/api/employees", {
+        method: "POST",
+        headers:{
+            "Content-Type":"application/json",
+            "Authorization":"Bearer " + localStorage.getItem("token")
+        },
+        body: JSON.stringify(body)
+    });
+
+    const out = await res.json();
+    alert(out.message || "Saved");
+
+    clearForm();
+    loadEmployees();
+}
+
+
+// CLEAR FORM
+function clearForm(){
+    ename.value = "";
+    eemail.value = "";
+    edept.value = "";
+    esalary.value = "";
+}
+
+// =====================================
+// LOAD EMPLOYEES LIST
+// =====================================
+async function loadEmployees(){
+    const res = await fetch("/api/employees", {
+        headers:{
+            "Authorization":"Bearer " + localStorage.getItem("token")
+        }
+    });
+
+    const j = await res.json();
+
+    let html = `
+        <tr>
+          <th>Name</th>
+          <th>Email</th>
+          <th>Dept</th>
+          <th>Basic Salary</th>
+          <th>Action</th>
+        </tr>
+    `;
+
+    (j.employees || []).forEach(e => {
+        html += `
+        <tr>
+          <td>${e.name}</td>
+          <td>${e.email}</td>
+          <td>${e.department}</td>
+          <td>${e.basic_salary}</td>
+          <td>
+            <button onclick="editEmp(${e.id}, '${e.name}', '${e.email}', '${e.department}', '${e.basic_salary}')"
+              style="background:#facc15;padding:6px;border-radius:6px;border:0;cursor:pointer;margin-right:6px">
+              Edit
+            </button>
+
+            <button onclick="delEmp(${e.id})"
+              style="background:#ef4444;padding:6px 10px;border-radius:6px;border:0;color:white;cursor:pointer">
+              Delete
+            </button>
+          </td>
+        </tr>
+        `;
+    });
+
+    etable.innerHTML = html;
+}
+
+
+// =====================================
+// EDIT EMPLOYEE
+// =====================================
+function editEmp(id, name, email, dept, salary){
+    updateId = id;
+
+    ename.value = name;
+    eemail.value = email;
+    edept.value = dept;
+    esalary.value = salary;
+
+    alert("Now edit fields and press SAVE to update.");
+}
+
+
+// =====================================
+// DELETE EMPLOYEE
+// =====================================
+async function delEmp(id){
+    if(!confirm("Delete this employee?")) return;
+
+    await fetch(`/api/employees/${id}`, {
+        method:"DELETE",
+        headers:{
+            "Authorization":"Bearer " + localStorage.getItem("token")
+        }
+    });
+
+    loadEmployees();
+}
+
+
+// INITIAL LOAD
+loadEmployees();
+
+</script>
+
+
+</body>
+</html>

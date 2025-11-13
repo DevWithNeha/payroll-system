@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Register → Login - Payroll System</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+  :root{--bg:#f4f7fb;--card:#fff;--accent:#2563eb;--muted:#6b7280}
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    font-family:Poppins,Arial;
+    background:var(--bg);
+    display:flex;
+    min-height:100vh;
+    justify-content:center;
+    align-items:center;
+    padding:20px;
+  }
+  .card{
+    width:380px;
+    background:var(--card);
+    padding:26px;
+    border-radius:14px;
+    box-shadow:0 8px 30px rgba(12,15,20,0.06);
+  }
+  h2{text-align:center;margin:0 0 10px}
+  .hint{color:var(--muted);font-size:14px;text-align:center;margin-bottom:8px}
+  input,select{
+    width:100%;
+    padding:12px;
+    border-radius:8px;
+    border:1px solid #e0e6f0;
+    margin-top:12px;
+    font-size:15px;
+  }
+  button{
+    width:100%;
+    padding:12px;
+    background:var(--accent);
+    color:#fff;
+    font-weight:600;
+    font-size:15px;
+    border-radius:8px;
+    border:0;
+    margin-top:16px;
+    cursor:pointer;
+  }
+  .link{
+    margin-top:10px;
+    text-align:center;
+    font-size:14px;
+    color:var(--accent);
+    cursor:pointer;
+  }
+  .hidden{display:none}
+  .msg{font-size:14px;text-align:center;margin-top:8px;color:var(--muted)}
+  .success{color:#0a7f3f;font-weight:600}
+</style>
+</head>
+
+<body>
+
+<div class="card">
+
+    <!-- REGISTER FORM -->
+    <div id="registerBox">
+      <h2>Create Account</h2>
+      <p class="hint">Step 1 — Register first</p>
+
+      <input id="rname" placeholder="Full Name">
+      <input id="remail" placeholder="Email">
+      <input id="rpass" type="password" placeholder="Password">
+      <select id="rrole">
+        <option value="employee">Employee</option>
+        <option value="admin">Admin</option>
+      </select>
+
+      <button onclick="register()">Register</button>
+      <div id="regMsg" class="msg"></div>
+
+      <div class="link" onclick="showLogin()">Already have an account? Login</div>
+    </div>
+
+    <!-- LOGIN FORM -->
+    <div id="loginBox" class="hidden">
+      <h2>Sign In</h2>
+      <p class="hint">Step 2 — Login to dashboard</p>
+
+      <input id="lemail" placeholder="Email">
+      <input id="lpass" type="password" placeholder="Password">
+
+      <button onclick="login()">Login</button>
+      <div id="loginMsg" class="msg"></div>
+
+      <div class="link" onclick="showRegister()">New user? Create account</div>
+    </div>
+
+</div>
+
+
+<script>
+// Switch to login
+function showLogin(){
+  document.getElementById("registerBox").classList.add("hidden");
+  document.getElementById("loginBox").classList.remove("hidden");
+}
+
+// Switch to register
+function showRegister(){
+  document.getElementById("loginBox").classList.add("hidden");
+  document.getElementById("registerBox").classList.remove("hidden");
+}
+
+
+// REGISTER
+async function register(){
+  let msg = document.getElementById('regMsg');
+  msg.textContent = "Registering...";
+
+  const body = {
+    name: rname.value,
+    email: remail.value,
+    password: rpass.value,
+    role: rrole.value
+  };
+
+  let res = await fetch('/api/register', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(body)
+  });
+  let out = await res.json();
+
+  if(out.message === "Registered Successfully"){
+      msg.textContent = "Registration Successful! Please login now.";
+      msg.classList.add("success");
+
+      // Switch to login automatically after 1 second
+      setTimeout(()=>{
+        showLogin();
+        lemail.value = remail.value;  // pre-fill email
+        lpass.focus();
+      }, 900);
+  }
+  else {
+      msg.textContent = out.message;
+  }
+}
+
+
+
+// LOGIN
+async function login(){
+  let msg = document.getElementById('loginMsg');
+  msg.textContent = "Logging in...";
+
+  const body = {
+    email: lemail.value,
+    password: lpass.value
+  };
+
+  let res = await fetch('/api/login', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(body)
+  });
+  let out = await res.json();
+
+  if(out.token){
+      msg.textContent = "Login Successful!";
+      msg.classList.add("success");
+
+      localStorage.setItem("token", out.token);
+
+      setTimeout(()=>location.href="index.html", 700);
+  }
+  else {
+      msg.textContent = out.message;
+  }
+}
+</script>
+
+</body>
+</html>

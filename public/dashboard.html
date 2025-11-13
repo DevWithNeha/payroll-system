@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Dashboard – Payroll System</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+body{
+  margin:0;
+  font-family:Poppins,Arial;
+  background:#eef2f9;
+}
+header{
+  background:#1e3a8a;
+  padding:18px;
+  color:white;
+  font-size:22px;
+  text-align:center;
+  font-weight:600;
+}
+.container{
+  max-width:900px;
+  margin:25px auto;
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:22px;
+}
+.card{
+  background:white;
+  padding:20px;
+  border-radius:14px;
+  box-shadow:0 4px 25px rgba(0,0,0,0.08);
+  text-align:center;
+}
+.card h2{
+  font-size:38px;
+  margin:10px 0;
+  color:#1e40af;
+}
+.card span{
+  font-size:18px;
+  font-weight:600;
+  color:#475569;
+}
+</style>
+
+</head>
+
+<body>
+
+<header>Dashboard Overview</header>
+
+<div class="container">
+  <div class="card">
+    <span>Total Employees</span>
+    <h2 id="empCount">0</h2>
+  </div>
+
+  <div class="card">
+    <span>Total Payrolls</span>
+    <h2 id="payCount">0</h2>
+  </div>
+
+  <div class="card">
+    <span>Total Attendance</span>
+    <h2 id="attCount">0</h2>
+  </div>
+</div>
+
+<script>
+
+// ========= FETCH DASHBOARD STATS =========
+async function loadStats(){
+    const res = await fetch("/api/stats", {
+      headers:{
+        "Authorization":"Bearer " + localStorage.getItem("token")
+      }
+    });
+
+    const d = await res.json();
+
+    empCount.innerText = d.employees || 0;
+    payCount.innerText = d.payrolls || 0;
+    attCount.innerText = d.attendance || 0;
+}
+
+loadStats();
+
+</script>
+
+</body>
+</html>
